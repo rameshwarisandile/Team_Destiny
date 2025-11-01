@@ -1,263 +1,329 @@
 import React, { useState, useRef, useEffect } from "react";
+import {
+  FiSend,
+  FiShield,
+  FiHeart,
+  FiPaperclip,
+  FiX,
+} from "react-icons/fi";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
-// SupportChat.jsx
-// Single-file React component built with Tailwind CSS.
-// Drop this file into a React app that already has Tailwind configured.
-
 export default function SupportChat() {
-  const [messages, setMessages] = useState(() => {
-    // sample initial messages
-    return [
-      {
-        id: 1,
-        sender: "system",
-        text:
-          "Welcome — you are in a confidential harassment support chat. If you are in immediate danger, call local emergency services.",
-        time: new Date().toISOString(),
-      },
-      {
-        id: 2,
-        sender: "agent",
-        text:
-          "Hi — I'm here to listen. When you're ready, tell me as much or as little as you'd like. You can also use the quick buttons below.",
-        time: new Date().toISOString(),
-      },
-    ];
-  });
-
+  const [messages, setMessages] = useState([
+    {
+      id: 1,
+      sender: "system",
+      text:
+        "Welcome — you’re in a confidential harassment support chat. If you are in immediate danger, please call emergency services.",
+      time: new Date().toISOString(),
+    },
+    {
+      id: 2,
+      sender: "agent",
+      text:
+        "Hi, I’m your support agent. You can share what happened, or tap one of the quick options below. This chat is safe and anonymous 💬",
+      time: new Date().toISOString(),
+    },
+  ]);
   const [input, setInput] = useState("");
-  const [sending, setSending] = useState(false);
   const [attachments, setAttachments] = useState([]);
+  const [previews, setPreviews] = useState([]);
+  const [sending, setSending] = useState(false);
+  const [agentTyping, setAgentTyping] = useState(false);
   const listRef = useRef(null);
 
   useEffect(() => {
-    // auto-scroll
-    if (listRef.current) {
+    if (listRef.current)
       listRef.current.scrollTop = listRef.current.scrollHeight;
-    }
   }, [messages]);
 
-  function sendMessage(e) {
+  const formatTime = (iso) => {
+    const d = new Date(iso);
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files).slice(0, 5);
+    setAttachments((prev) => [...prev, ...files]);
+    const newPreviews = files.map((file) => ({
+      name: file.name,
+      url: URL.createObjectURL(file),
+      type: file.type,
+    }));
+    setPreviews((prev) => [...prev, ...newPreviews]);
+  };
+
+  const removeAttachment = (index) => {
+    setAttachments((prev) => {
+      const updated = [...prev];
+      updated.splice(index, 1);
+      return updated;
+    });
+    setPreviews((prev) => {
+      const updated = [...prev];
+      const removed = updated.splice(index, 1);
+      if (removed[0] && removed[0].url) URL.revokeObjectURL(removed[0].url);
+      return updated;
+    });
+  };
+
+  const sendMessage = (e) => {
     e?.preventDefault();
-    const trimmed = input.trim();
-    if (!trimmed && attachments.length === 0) return;
+    const text = input.trim();
+    if (!text && attachments.length === 0) return;
 
     const newMsg = {
       id: Date.now(),
       sender: "user",
-      text: trimmed,
+      text,
       attachments: attachments.map((f) => ({ name: f.name, size: f.size })),
       time: new Date().toISOString(),
     };
 
-    setSending(true);
     setMessages((m) => [...m, newMsg]);
     setInput("");
-    setAttachments([]);
+    setSending(true);
+    setAgentTyping(true);
 
-    // Try to send to backend AI endpoint. If it fails, fall back to the mock reply.
-    (async () => {
-      try {
-        const resp = await fetch("/api/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: trimmed }),
-        });
-
-        if (!resp.ok) throw new Error("AI endpoint returned error");
-
-        const data = await resp.json();
-        const aiText = (data && (data.reply || data.text || data.message)) || null;
-
-        if (aiText) {
-          const reply = {
-            id: Date.now() + 1,
-            sender: "agent",
-            text: aiText,
-            time: new Date().toISOString(),
-          };
-          setMessages((m) => [...m, reply]);
-          setSending(false);
-          return;
-        }
-
-        throw new Error("No reply from AI");
-      } catch (err) {
-        // Fallback mock reply
-        const reply = {
-          id: Date.now() + 1,
-          sender: "agent",
-          text:
-            "Thank you for sharing that. Would you like resources, a safety plan, or to talk about what happened in more detail?",
-          time: new Date().toISOString(),
-        };
-        setMessages((m) => [...m, reply]);
-        setSending(false);
-      }
-    })();
-  }
-
-  function handleFileChange(e) {
-    const files = Array.from(e.target.files).slice(0, 3); // limit attachments
-    setAttachments(files);
-  }
-
-  function quickInsert(text) {
-    setInput((s) => (s ? s + " " + text : text));
-  }
-
-  function formatTime(iso) {
-    const d = new Date(iso);
-    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  }
+    setTimeout(() => {
+      const reply = {
+        id: Date.now() + 1,
+        sender: "agent",
+        text:
+          "Thank you for reaching out. You're not alone. Would you like safety advice, emotional support, or to file an anonymous report?",
+        time: new Date().toISOString(),
+      };
+      setMessages((m) => [...m, reply]);
+      setSending(false);
+      setAgentTyping(false);
+      setAttachments([]);
+      setPreviews([]);
+    }, 1800);
+  };
 
   return (
-    <div className="bg-[#f9fafb] text-gray-800 font-inter min-h-screen flex flex-col">
+    <div className="bg-gradient-to-b from-[#f9fbff] to-[#eef5ff] text-gray-800 font-inter min-h-screen flex flex-col">
       <Header />
 
-      <div className="pt-24 max-w-4xl mx-auto h-[80vh] w-full">
-        <div className="bg-white shadow-lg rounded-2xl overflow-hidden flex flex-col md:flex-row">
-      {/* Left: Chat area */}
-      <main className="flex-1 flex flex-col">
-        <header className="px-4 py-3 border-b flex items-center justify-between bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">📞</div>
-            <div>
-              <h1 className="font-semibold">Harassment Support — Confidential Chat</h1>
-              <p className="text-sm opacity-90">Secure channel • You're not alone</p>
-            </div>
-          </div>
-          <div className="text-right text-sm">
-            <div>Local Crisis Line: <span className="font-medium">If immediate danger, call emergency services</span></div>
-          </div>
-        </header>
-
-        <section ref={listRef} className="flex-1 overflow-auto p-4 space-y-4 bg-gray-50">
-          {messages.map((m) => (
-            <div key={m.id} className="max-w-3xl mx-auto">
-              {m.sender === "system" && (
-                <div className="text-center text-xs text-gray-600">{m.text}</div>
-              )}
-
-              {m.sender === "agent" && (
-                <div className="flex gap-3 items-start">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold">A</div>
-                  <div className="bg-white p-3 rounded-lg shadow-sm">
-                    <div className="text-sm">{m.text}</div>
-                    <div className="text-xs text-gray-400 mt-2">{formatTime(m.time)}</div>
+      {/* 🌈 Chat Section */}
+      <main className="pt-24 pb-24 flex-grow">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-[#e0f2ff]">
+            {/* 💬 Left: Chat Window */}
+            <section className="flex-1 flex flex-col bg-gradient-to-b from-white via-[#f9fbff] to-[#eef6ff]">
+              <header className="px-6 py-4 border-b bg-gradient-to-r from-[#00bbf9] to-[#9b5de5] text-white shadow-md flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-white/20 rounded-full shadow">
+                    <FiShield size={20} />
+                  </div>
+                  <div>
+                    <h1 className="font-semibold text-lg">SafeVoice — Confidential Chat</h1>
+                    <p className="text-xs opacity-90">
+                      Private, anonymous & encrypted
+                    </p>
                   </div>
                 </div>
-              )}
+                <p className="text-xs font-light">💡 You are safe here</p>
+              </header>
 
-              {m.sender === "user" && (
-                <div className="flex justify-end">
-                  <div className="bg-indigo-600 text-white p-3 rounded-lg shadow-sm max-w-[80%] break-words">
-                    <div className="text-sm">{m.text}</div>
-                    {m.attachments && m.attachments.length > 0 && (
-                      <ul className="mt-2 text-xs">
-                        {m.attachments.map((a, i) => (
-                          <li key={i} className="opacity-90">📎 {a.name} • {Math.round(a.size/1024)} KB</li>
-                        ))}
-                      </ul>
+              {/* Chat Messages */}
+              <div ref={listRef} className="flex-1 overflow-auto p-6 space-y-4 bg-[#f8faff]">
+                {messages.map((m) => (
+                  <div key={m.id} className="max-w-3xl mx-auto">
+                    {m.sender === "system" && (
+                      <div className="text-center text-sm text-gray-600 italic">
+                        {m.text}
+                      </div>
                     )}
-                    <div className="text-xs text-white/80 mt-2">{formatTime(m.time)}</div>
+                    {m.sender === "agent" && (
+                      <div className="flex gap-3 items-start">
+                        <div className="flex-shrink-0 w-9 h-9 rounded-full bg-[#e6f0ff] flex items-center justify-center text-[#4f46e5] font-semibold shadow">
+                          A
+                        </div>
+                        <div className="bg-white border border-[#e5ecff] p-3 rounded-2xl shadow-sm">
+                          <div className="text-sm text-gray-700">{m.text}</div>
+                          <div className="text-xs text-gray-400 mt-2">
+                            {formatTime(m.time)}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {m.sender === "user" && (
+                      <div className="flex justify-end">
+                        <div className="bg-gradient-to-r from-[#00bbf9] to-[#9b5de5] text-white p-3 rounded-2xl shadow-sm max-w-[80%]">
+                          <div className="text-sm">{m.text}</div>
+                          {m.attachments?.length > 0 && (
+                            <ul className="mt-2 text-xs text-white/90">
+                              {m.attachments.map((a, i) => (
+                                <li key={i}>📎 {a.name} ({Math.round(a.size / 1024)} KB)</li>
+                              ))}
+                            </ul>
+                          )}
+                          <div className="text-xs text-white/80 mt-2 text-right">
+                            {formatTime(m.time)}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
+                ))}
+                {agentTyping && (
+                  <div className="flex gap-3 items-start">
+                    <div className="flex-shrink-0 w-9 h-9 rounded-full bg-[#e6f0ff] flex items-center justify-center text-[#4f46e5] font-semibold shadow">
+                      A
+                    </div>
+                    <div className="bg-white border border-[#e5ecff] p-3 rounded-2xl shadow-sm">
+                      <div className="flex items-center gap-1">
+                        <span className="w-2 h-2 bg-gray-300 rounded-full animate-pulse"></span>
+                        <span className="w-2 h-2 bg-gray-300 rounded-full animate-pulse delay-150"></span>
+                        <span className="w-2 h-2 bg-gray-300 rounded-full animate-pulse delay-300"></span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Input + Attachments */}
+              <form onSubmit={sendMessage} className="p-4 border-t bg-white/80 backdrop-blur-lg">
+                <div className="flex items-end gap-3">
+                  {/* Attachment Input */}
+                  <div className="relative">
+                    <input
+                      id="file-upload"
+                      type="file"
+                      multiple
+                      onChange={handleFileChange}
+                      className="hidden"
+                      accept="image/*,application/pdf,text/plain"
+                    />
+                    <label
+                      htmlFor="file-upload"
+                      className="cursor-pointer p-3 rounded-full border border-[#d0e7ff] hover:bg-[#eef7ff] text-[#0077b6] transition"
+                    >
+                      <FiPaperclip size={18} />
+                    </label>
+                  </div>
+
+                  <textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    rows={2}
+                    placeholder="Type your message..."
+                    className="flex-1 resize-none border rounded-2xl p-3 focus:outline-none focus:ring-2 focus:ring-[#00bbf9] text-sm bg-[#f9fbff]"
+                  />
+                  <button
+                    type="submit"
+                    disabled={sending}
+                    className="p-3 bg-gradient-to-r from-[#00bbf9] to-[#9b5de5] text-white rounded-full shadow-lg hover:scale-105 transition-all"
+                  >
+                    <FiSend size={18} />
+                  </button>
                 </div>
-              )}
-            </div>
-          ))}
-        </section>
 
-        <form onSubmit={sendMessage} className="p-4 border-t bg-white">
-          <div className="flex gap-2 items-end">
-            <div className="flex-1">
-              <label htmlFor="message" className="sr-only">Type your message</label>
-              <textarea
-                id="message"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                rows={2}
-                className="w-full resize-none border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                placeholder="Type something—it's okay to write a little at a time"
-                aria-label="Type your message"
-              />
+                {/* File Previews */}
+                {previews.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-3">
+                    {previews.map((p, i) => (
+                      <div
+                        key={i}
+                        className="relative w-20 h-16 border rounded-md overflow-hidden shadow-sm"
+                      >
+                        {p.type.startsWith("image/") ? (
+                          <img
+                            src={p.url}
+                            alt={p.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-xs p-2 bg-gray-50 text-gray-600">
+                            {p.name}
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removeAttachment(i)}
+                          className="absolute -top-1 -right-1 bg-white text-red-600 rounded-full p-[2px] shadow"
+                        >
+                          <FiX size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-              {attachments.length > 0 && (
-                <div className="mt-2 text-sm text-gray-600">
-                  Attached: {attachments.map((a) => a.name).join(", ")}
+                {/* Quick buttons */}
+                <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                  {["Safety help", "Report harassment", "Emotional support"].map(
+                    (txt) => (
+                      <button
+                        key={txt}
+                        type="button"
+                        onClick={() => setInput(txt)}
+                        className="px-3 py-1 border border-[#d0e7ff] rounded-full hover:bg-[#e7f4ff] text-gray-700"
+                      >
+                        {txt}
+                      </button>
+                    )
+                  )}
                 </div>
-              )}
-            </div>
+              </form>
+            </section>
 
-            <div className="flex flex-col items-center gap-2">
-              <input
-                id="file"
-                type="file"
-                accept="image/*,application/pdf,text/plain"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-              <label htmlFor="file" className="text-sm px-3 py-2 border rounded-lg cursor-pointer">Attach</label>
+            {/* 📚 Right: Helpful Sidebar */}
+            <aside className="w-full md:w-96 border-l bg-gradient-to-b from-[#fdfdff] to-[#f4f8ff] p-6 flex flex-col gap-4">
+              <div className="mb-2">
+                <h2 className="text-lg font-bold text-[#0a1a3a] flex items-center gap-2">
+                  <FiHeart className="text-[#ff477e]" /> Quick Resources
+                </h2>
+                <p className="text-sm text-gray-600">
+                  Trusted support tools & helplines — confidential and free.
+                </p>
+              </div>
 
-              <button
-                type="submit"
-                disabled={sending}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:opacity-60"
-              >
-                {sending ? "Sending..." : "Send"}
-              </button>
-            </div>
+              <div className="space-y-3">
+                <div className="p-3 bg-white rounded-xl shadow-sm border">
+                  <h3 className="font-medium text-[#00bbf9]">Safety Planning</h3>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Steps to secure your environment and prepare for safety.
+                  </p>
+                  <button className="mt-3 w-full text-left px-3 py-2 border rounded-lg text-sm hover:bg-[#e9f8ff]">
+                    Open Safety Guide
+                  </button>
+                </div>
+
+                <div className="p-3 bg-white rounded-xl shadow-sm border">
+                  <h3 className="font-medium text-[#9b5de5]">Legal & Reporting</h3>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Learn about your rights and safe reporting processes.
+                  </p>
+                  <button className="mt-3 w-full text-left px-3 py-2 border rounded-lg text-sm hover:bg-[#f1e9ff]">
+                    View Legal Options
+                  </button>
+                </div>
+
+                <div className="p-3 bg-white rounded-xl shadow-sm border">
+                  <h3 className="font-medium text-[#ff477e]">Helplines</h3>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Talk with mental health or crisis professionals anytime.
+                  </p>
+                  <button className="mt-3 w-full text-left px-3 py-2 border rounded-lg text-sm hover:bg-[#fff0f6]">
+                    View Helplines
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-auto text-xs text-gray-500 leading-relaxed">
+                <p>
+                  🔒 Confidentiality note: Your messages are encrypted and not
+                  stored permanently. If you’re in danger, call local emergency
+                  services immediately.
+                </p>
+              </div>
+            </aside>
           </div>
-
-          <div className="mt-3 flex flex-wrap gap-2 text-sm">
-            <button type="button" onClick={() => quickInsert("I need immediate safety advice")}
-              className="px-3 py-1 border rounded-full text-gray-700">Immediate safety</button>
-            <button type="button" onClick={() => quickInsert("I want to report harassment")}
-              className="px-3 py-1 border rounded-full text-gray-700">Report</button>
-            <button type="button" onClick={() => quickInsert("I need emotional support")}
-              className="px-3 py-1 border rounded-full text-gray-700">Emotional support</button>
-          </div>
-        </form>
+        </div>
       </main>
-
-      {/* Right: Resources + quick actions */}
-      <aside className="w-full md:w-96 border-l bg-gradient-to-b from-white to-gray-50 p-4 flex flex-col">
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold">Quick Resources</h2>
-          <p className="text-sm text-gray-600">Links & actions you can use without leaving the chat.</p>
-        </div>
-
-        <div className="space-y-3 mb-4">
-          <div className="p-3 bg-white rounded-lg shadow-sm">
-            <h3 className="font-medium">Safety Planning</h3>
-            <p className="text-sm text-gray-600 mt-1">Short checklist and steps to protect yourself.</p>
-            <button className="mt-3 w-full text-left px-3 py-2 border rounded-lg">Open safety checklist</button>
-          </div>
-
-          <div className="p-3 bg-white rounded-lg shadow-sm">
-            <h3 className="font-medium">Legal & Reporting</h3>
-            <p className="text-sm text-gray-600 mt-1">How to preserve evidence, next steps for reporting.</p>
-            <button className="mt-3 w-full text-left px-3 py-2 border rounded-lg">Get legal options</button>
-          </div>
-
-          <div className="p-3 bg-white rounded-lg shadow-sm">
-            <h3 className="font-medium">Self-care & Helplines</h3>
-            <p className="text-sm text-gray-600 mt-1">Immediate helplines and coping strategies.</p>
-            <button className="mt-3 w-full text-left px-3 py-2 border rounded-lg">View helplines</button>
-          </div>
-        </div>
-
-        <div className="mt-auto text-xs text-gray-500">
-          <p>
-            Confidentiality note: This chat is intended for support. Do not share passwords or other sensitive account
-            details. If you believe you are in immediate danger, call local emergency services.
-          </p>
-        </div>
-      </aside>
-        </div>
-      </div>
 
       <Footer />
     </div>

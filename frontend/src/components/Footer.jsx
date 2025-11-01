@@ -100,7 +100,7 @@ export default function Footer() {
                 <FiMail className="text-[#00bbf9]" size={16} /> support@safevoice.org
               </a>
               <p className="flex items-center justify-center md:justify-start gap-2 text-gray-500">
-                <FiHeart className="text-pink-500" /> Made with compassion ❤️
+                <FiHeart className="text-pink-500" /> Made with compassion 
               </p>
             </div>
           </div>
