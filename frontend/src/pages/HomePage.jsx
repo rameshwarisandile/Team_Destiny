@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import FloatingHelpButton from "../components/FloatingHelpButton";
@@ -10,24 +11,28 @@ const features = [
     text: "Share your experience anonymously through our secure platform. Your identity remains protected at all times.",
     bg: "bg-gradient-to-br from-teal-50 to-emerald-100",
     icon: <FiFileText size={28} className="text-emerald-600" />,
+    link: "/submit-report",
   },
   {
     title: "AI Analysis",
     text: "Our AI reviews your report to provide the most relevant and immediate support resources.",
     bg: "bg-gradient-to-br from-sky-50 to-blue-100",
     icon: <FiCpu size={28} className="text-sky-600" />,
+    link: "/ai-analysis",
   },
   {
     title: "Find Help",
     text: "Connect with verified NGOs, legal aid, and professional counselors in your area.",
     bg: "bg-gradient-to-br from-pink-50 to-rose-100",
     icon: <FiSearch size={28} className="text-rose-600" />,
+    link: "/find-help",
   },
   {
     title: "Chat Support",
     text: "Get instant guidance from our AI chatbot or trained human counselors available 24/7.",
     bg: "bg-gradient-to-br from-amber-50 to-yellow-100",
     icon: <FiMessageSquare size={28} className="text-amber-600" />,
+    link: "/chat-support",
   },
 ];
 
@@ -48,12 +53,17 @@ const HomePage = () => {
           </p>
 
           <div className="flex justify-center space-x-4">
-            <button className="bg-gradient-to-r from-[#00f5d4] to-[#00bbf9] text-[#0a1a3a] font-semibold px-6 py-3 rounded-md shadow-md hover:shadow-lg hover:scale-105 transition-all">
-              File a Report Securely
-            </button>
-            <button className="bg-gradient-to-r from-[#f72585] to-[#7209b7] text-white font-semibold px-6 py-3 rounded-md shadow-md hover:shadow-lg hover:scale-105 transition-all">
-              Connect with AI Chatbot
-            </button>
+            <Link to="/submit-report">
+              <button className="bg-gradient-to-r from-[#00f5d4] to-[#00bbf9] text-[#0a1a3a] font-semibold px-6 py-3 rounded-md shadow-md hover:shadow-lg hover:scale-105 transition-all">
+                File a Report Securely
+              </button>
+            </Link>
+
+            <Link to="/chat-support">
+              <button className="bg-gradient-to-r from-[#f72585] to-[#7209b7] text-white font-semibold px-6 py-3 rounded-md shadow-md hover:shadow-lg hover:scale-105 transition-all">
+                Connect with AI Chatbot
+              </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -66,16 +76,17 @@ const HomePage = () => {
 
         <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8">
           {features.map((feature, i) => (
-            <div
-              key={i}
-              className={`${feature.bg} rounded-2xl shadow-md hover:shadow-xl transition-all p-6 text-center border border-gray-100 hover:-translate-y-1`}
-            >
-              <div className="flex justify-center mb-4">{feature.icon}</div>
-              <h3 className="font-semibold text-lg mb-2 text-[#0a1a3a]">
-                {feature.title}
-              </h3>
-              <p className="text-gray-600 text-sm">{feature.text}</p>
-            </div>
+            <Link key={i} to={feature.link}>
+              <div
+                className={`${feature.bg} rounded-2xl shadow-md hover:shadow-xl transition-all p-6 text-center border border-gray-100 hover:-translate-y-1`}
+              >
+                <div className="flex justify-center mb-4">{feature.icon}</div>
+                <h3 className="font-semibold text-lg mb-2 text-[#0a1a3a]">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600 text-sm">{feature.text}</p>
+              </div>
+            </Link>
           ))}
         </div>
       </section>
@@ -115,3 +126,4 @@ const HomePage = () => {
 };
 
 export default HomePage;
+

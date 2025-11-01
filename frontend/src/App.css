@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
 :root{
   --bg1: #f5fff9;
   --bg2: #eef9f4;
@@ -9,8 +11,6 @@
   --shadow-lg: 0 20px 40px rgba(16,24,40,0.08);
   --shadow-sm: 0 8px 24px rgba(16,24,40,0.06);
 }
-
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
 
 *{box-sizing:border-box}
 body{font-family:'Poppins', Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial; margin:0; background:radial-gradient(1200px 400px at 10% 10%, rgba(138,239,219,0.35), transparent 8%), linear-gradient(180deg,var(--bg1),var(--bg2)); color:#07201a; -webkit-font-smoothing:antialiased}
