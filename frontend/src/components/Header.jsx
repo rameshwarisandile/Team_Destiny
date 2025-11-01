@@ -1,15 +1,28 @@
 import React, { useState } from "react";
-import { FiShield, FiMenu, FiX, FiMapPin } from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { FiShield, FiMenu, FiX, FiMapPin, FiArrowLeft } from "react-icons/fi";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   return (
     <header className="w-full bg-gradient-to-r from-[#e0f7fa] via-[#fdfbfb] to-[#e8f0fe] shadow-md fixed top-0 left-0 z-50 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
-        {/* 🔰 Brand Logo */}
-        <Link to="/" className="flex items-center gap-2">
+        {/* 🔰 Back icon (except on home) + Brand Logo */}
+        <div className="flex items-center gap-3">
+          {location && location.pathname !== "/" && (
+            <button
+              onClick={() => navigate(-1)}
+              aria-label="Go back"
+              className="p-2 rounded-md hover:bg-white/30 text-[#0b1f3a]"
+            >
+              <FiArrowLeft size={20} />
+            </button>
+          )}
+
+          <Link to="/" className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-[#00f5d4] to-[#00bbf9] flex items-center justify-center shadow-md">
             <FiShield size={22} color="#0b1f3a" />
           </div>
@@ -18,6 +31,7 @@ export default function Header() {
           </h1>
         </Link>
 
+        </div>
         {/* 🌐 Desktop Nav */}
         <nav className="hidden md:flex items-center gap-6">
           <Link
