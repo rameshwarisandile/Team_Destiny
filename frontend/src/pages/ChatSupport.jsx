@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
 
 // SupportChat.jsx
 // Single-file React component built with Tailwind CSS.
@@ -112,7 +114,11 @@ export default function SupportChat() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto h-[80vh] bg-white shadow-lg rounded-2xl overflow-hidden flex flex-col md:flex-row">
+    <div className="bg-[#f9fafb] text-gray-800 font-inter min-h-screen flex flex-col">
+      <Header />
+
+      <div className="pt-24 max-w-4xl mx-auto h-[80vh] w-full">
+        <div className="bg-white shadow-lg rounded-2xl overflow-hidden flex flex-col md:flex-row">
       {/* Left: Chat area */}
       <main className="flex-1 flex flex-col">
         <header className="px-4 py-3 border-b flex items-center justify-between bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
@@ -250,6 +256,10 @@ export default function SupportChat() {
           </p>
         </div>
       </aside>
+        </div>
+      </div>
+
+      <Footer />
     </div>
   );
 }
